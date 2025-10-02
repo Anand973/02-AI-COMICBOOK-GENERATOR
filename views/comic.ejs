@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- views/comic.ejs - Display Generated Comic -->
+<div class="card">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #333; margin-bottom: 10px;"><%= comic.story.title %></h1>
+        <p style="color: #666; font-style: italic; font-size: 18px;"><%= comic.story.summary %></p>
+    </div>
+
+    <% if (comic.story.characters && comic.story.characters.length > 0) { %>
+    <div style="background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #333;">
+            <i class="fas fa-users"></i> Characters:
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <% comic.story.characters.forEach(character => { %>
+            <div>
+                <strong><%= character.name %></strong> (<%= character.role %>)
+                <p style="color: #666; font-size: 14px; margin-top: 5px;"><%= character.description %></p>
+            </div>
+            <% }); %>
+        </div>
+    </div>
+    <% } %>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <% if (comic.images && comic.images.panels) { %>
+            <% comic.images.panels.forEach(panel => { %>
+            <div style="border: 3px solid #333; border-radius: 15px; overflow: hidden; background: white;">
+                <div style="background: #333; color: white; padding: 10px; text-align: center;">
+                    <strong>Panel <%= panel.panelNumber %></strong>
+                </div>
+                
+                <% if (panel.imagePath) { %>
+                <img 
+                    src="<%= panel.imagePath %>" 
+                    alt="Panel <%= panel.panelNumber %>"
+                    style="width: 100%; height: 300px; object-fit: cover;"
+                >
+                <% } else { %>
+                <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #666;">
+                    <i class="fas fa-exclamation-triangle"></i> Image generation failed
+                </div>
+                <% } %>
+                
+                <div style="padding: 15px;">
+                    <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
+                        <strong>Setting:</strong> <%= panel.setting %>
+                    </p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                        <strong>Action:</strong> <%= panel.action %>
+                    </p>
+                    <% if (panel.dialogue) { %>
+                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-comment"></i> "<%= panel.dialogue %>"
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+            <% }); %>
+        <% } %>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/" class="btn" style="margin-right: 10px;">
+            <i class="fas fa-plus"></i> Create Another Comic
+        </a>
+        <a href="/gallery" class="btn btn-secondary">
+            <i class="fas fa-images"></i> View Gallery
+        </a>
+    </div>
+</div>
+</body>
+</html>

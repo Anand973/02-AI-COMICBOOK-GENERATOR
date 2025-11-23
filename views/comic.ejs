@@ -1,80 +1,427 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= comic.story.title %> — Comic Viewer</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+ body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #111;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .comic-container {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      height: 100vh;
+    }
+
+    .comic-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .comic-container {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .panel-page {
+      min-width: 100vw;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 20px;
+      box-sizing: border-box;
+    }
+
+    .panel-content {
+      position: relative;
+      background: #222;
+      border-radius: 20px;
+      padding: 40px;
+      width: 90%;
+      max-width: 1200px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      overflow: visible;
+    }
+
+    .panel-header {
+      font-family: 'Comic Neue', cursive;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #ffd966;
+      text-align: center;
+      margin-bottom: 25px;
+      letter-spacing: 2px;
+    }
+
+    /* Grid for 4 images */
+    .image-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      width: 100%;
+    }
+
+    .image-box {
+      background: #000;
+      border-radius: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      overflow: hidden;
+      height: 300px;
+      max-height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 15px;
+    }
+
+    /* Floating dialogue clouds */
+    .dialogue-cloud {
+      position: absolute;
+      background: #fff;
+      color: #000;
+      padding: 14px 20px;
+      border-radius: 30px;
+      font-family: 'Comic Neue', cursive;
+      font-size: 1rem;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+      border: 2px solid #000;
+      text-align: center;
+      white-space: normal;
+      max-width: 280px;
+      min-width: 150px;
+      z-index: 3;
+      line-height: 1.4;
+    }
+
+    .dialogue-cloud::after {
+      content: '';
+      position: absolute;
+      border: 12px solid transparent;
+    }
+
+    /* Positions — outside near corners */
+    .cloud-1 {
+      top: -15px;
+      left: -15px;
+    }
+    .cloud-1::after {
+      bottom: -20px;
+      right: 25px;
+      border-top-color: #fff;
+    }
+
+    .cloud-2 {
+      top: -15px;
+      right: -15px;
+    }
+    .cloud-2::after {
+      bottom: -20px;
+      left: 25px;
+      border-top-color: #fff;
+    }
+
+    .cloud-3 {
+      bottom: -15px;
+      left: -15px;
+    }
+    .cloud-3::after {
+      top: -20px;
+      right: 25px;
+      border-bottom-color: #fff;
+    }
+
+    .cloud-4 {
+      bottom: -15px;
+      right: -15px;
+    }
+    .cloud-4::after {
+      top: -20px;
+      left: 25px;
+      border-bottom-color: #fff;
+    }
+
+    /* Page Indicator */
+    .page-indicator {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      padding: 10px 20px;
+      color: white;
+      font-family: 'Comic Neue', cursive;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    /* Navigation Controls */
+    .nav-controls {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+      font-family: 'Comic Neue', cursive;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      border: none;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 217, 102, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 217, 102, 0.4);
+    }
+
+    .nav-btn i {
+      margin-right: 5px;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ffd966, #ff9966, #ff6699);
+      transform-origin: left;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .panel-page {
+        padding: 100px 10px;
+      }
+      
+      .dialogue-cloud {
+        max-width: 200px;
+        font-size: 0.9rem;
+        padding: 12px 16px;
+      }
+      
+      .image-box {
+        height: 200px;
+        max-height: 200px;
+      }
+    }
+</style>
+
 </head>
 <body>
-    <!-- views/comic.ejs - Display Generated Comic -->
-<div class="card">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #333; margin-bottom: 10px;"><%= comic.story.title %></h1>
-        <p style="color: #666; font-style: italic; font-size: 18px;"><%= comic.story.summary %></p>
-    </div>
+  <!-- Page Indicator -->
+  <div class="page-indicator" id="pageIndicator">
+    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+  </div>
 
-    <% if (comic.story.characters && comic.story.characters.length > 0) { %>
-    <div style="background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
-        <h3 style="margin-bottom: 15px; color: #333;">
-            <i class="fas fa-users"></i> Characters:
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-            <% comic.story.characters.forEach(character => { %>
-            <div>
-                <strong><%= character.name %></strong> (<%= character.role %>)
-                <p style="color: #666; font-size: 14px; margin-top: 5px;"><%= character.description %></p>
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Comic Container -->
+  <div class="comic-container" id="comicContainer">
+    <% if (comic.images && comic.images.panels) { %>
+      <% const panels = comic.images.panels; %>
+      <% const totalPages = Math.ceil(panels.length / 4); %>
+      
+      <% for (let pageNum = 0; pageNum < totalPages; pageNum++) { %>
+        <div class="panel-page">
+          <div class="panel-content">
+            <div class="panel-header">
+              <%= comic.story.title %> - Page <%= pageNum + 1 %>
             </div>
-            <% }); %>
-        </div>
-    </div>
-    <% } %>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-        <% if (comic.images && comic.images.panels) { %>
-            <% comic.images.panels.forEach(panel => { %>
-            <div style="border: 3px solid #333; border-radius: 15px; overflow: hidden; background: white;">
-                <div style="background: #333; color: white; padding: 10px; text-align: center;">
-                    <strong>Panel <%= panel.panelNumber %></strong>
-                </div>
-                
-                <% if (panel.imagePath) { %>
-                <img 
-                    src="<%= panel.imagePath %>" 
+            <!-- Grid for 4 images -->
+            <div class="image-grid">
+              <% const startIdx = pageNum * 4; %>
+              <% const endIdx = Math.min(startIdx + 4, panels.length); %>
+              <% for (let i = startIdx; i < endIdx; i++) { %>
+                <% const panel = panels[i]; %>
+                <div class="image-box">
+                  <img 
+                    src="<%= panel.imagePath %>"
                     alt="Panel <%= panel.panelNumber %>"
-                    style="width: 100%; height: 300px; object-fit: cover;"
-                >
-                <% } else { %>
-                <div style="height: 300px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #666;">
-                    <i class="fas fa-exclamation-triangle"></i> Image generation failed
+                    class="panel-image"
+                  >
                 </div>
-                <% } %>
-                
-                <div style="padding: 15px;">
-                    <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
-                        <strong>Setting:</strong> <%= panel.setting %>
-                    </p>
-                    <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
-                        <strong>Action:</strong> <%= panel.action %>
-                    </p>
-                    <% if (panel.dialogue) { %>
-                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; border-radius: 5px;">
-                        <i class="fas fa-comment"></i> "<%= panel.dialogue %>"
-                    </div>
-                    <% } %>
-                </div>
+              <% } %>
             </div>
-            <% }); %>
-        <% } %>
-    </div>
 
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="/" class="btn" style="margin-right: 10px;">
-            <i class="fas fa-plus"></i> Create Another Comic
-        </a>
-        <a href="/gallery" class="btn btn-secondary">
-            <i class="fas fa-images"></i> View Gallery
-        </a>
-    </div>
-</div>
+            <!-- Dialogue clouds -->
+            <% for (let i = startIdx; i < endIdx; i++) { %>
+              <% const panel = panels[i]; %>
+              <% const localIdx = i - startIdx; %>
+              <% if (panel.dialogue) { %>
+                <div class="dialogue-cloud cloud-<%= localIdx + 1 %>">
+                  <%= panel.dialogue %>
+                </div>
+              <% } %>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+
+  <!-- Navigation Controls -->
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn">
+      <i class="fas fa-arrow-left"></i> Previous
+    </button>
+    <a href="/create" class="nav-btn">
+      <i class="fas fa-plus"></i> Create New
+    </a>
+    <a href="/gallery" class="nav-btn">
+      <i class="fas fa-images"></i> Gallery
+    </a>
+    <a href="/" class="nav-btn">
+      <i class="fas fa-home"></i> Home
+    </a>
+    <button class="nav-btn" id="nextBtn">
+      Next <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <script>
+    const container = document.getElementById('comicContainer');
+    const progressBar = document.getElementById('progressBar');
+    const currentPageSpan = document.getElementById('currentPage');
+    const totalPagesSpan = document.getElementById('totalPages');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Calculate total pages
+    const totalPages = container.children.length;
+    totalPagesSpan.textContent = totalPages;
+    
+    let currentPage = 1;
+
+    // Update progress and page indicator
+    function updateProgress() {
+      const scrollLeft = container.scrollLeft;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+      
+      progressBar.style.transform = `scaleX(${progress / 100})`;
+      
+      // Calculate current page
+      const pageWidth = container.clientWidth;
+      currentPage = Math.round(scrollLeft / pageWidth) + 1;
+      currentPageSpan.textContent = currentPage;
+      
+      // Update button states
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+    }
+
+    // Handle scroll events
+    container.addEventListener('scroll', updateProgress);
+
+    // Navigation functions
+    function goToNextPage() {
+      if (currentPage < totalPages) {
+        const pageWidth = container.clientWidth;
+        container.scrollBy({ left: pageWidth, behavior: 'smooth' });
+      }
+    }
+
+    function goToPrevPage() {
+      if (currentPage > 1) {
+        const pageWidth = container.clientWidth;
+        container.scrollBy({ left: -pageWidth, behavior: 'smooth' });
+      }
+    }
+
+    // Button click handlers
+    nextBtn.addEventListener('click', goToNextPage);
+    prevBtn.addEventListener('click', goToPrevPage);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        goToNextPage();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrevPage();
+      }
+    });
+
+    // Touch/swipe support for mobile
+    let startX = 0;
+    let scrollStart = 0;
+
+    container.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      scrollStart = container.scrollLeft;
+    });
+
+    container.addEventListener('touchmove', (e) => {
+      if (!startX) return;
+      
+      const currentX = e.touches[0].clientX;
+      const diff = startX - currentX;
+      container.scrollLeft = scrollStart + diff;
+    });
+
+    container.addEventListener('touchend', () => {
+      startX = 0;
+      scrollStart = 0;
+      
+      // Snap to nearest page
+      const pageWidth = container.clientWidth;
+      const currentScroll = container.scrollLeft;
+      const nearestPage = Math.round(currentScroll / pageWidth);
+      
+      container.scrollTo({
+        left: nearestPage * pageWidth,
+        behavior: 'smooth'
+      });
+    });
+
+    // Initialize
+    updateProgress();
+  </script>
 </body>
 </html>

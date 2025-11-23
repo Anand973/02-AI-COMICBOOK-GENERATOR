@@ -328,7 +328,7 @@
                     <li><a href="#features" class="btn btn-primary">Features</a></li>
                     <li><a href="/gallery" class="btn btn-primary">Gallery</a></li>
                     
-                     <% if (user) { %>
+                     <% if (user!=null) { %>
    <li><a href="/user/logout" class="btn btn-primary">Logout</a></li>
   <% } else { %>
     <li><a href="/user/login" class="btn btn-secondary">Login</a></li>
@@ -394,7 +394,7 @@
                     
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-layout"></i>
+                            <i class="fas fa-columns"></i>
                         </div>
                         <h3>Smart Layouts</h3>
                         <p>Automatically generate professional comic panel layouts that enhance your story's flow and impact.</p>

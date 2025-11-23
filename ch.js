@@ -5,10 +5,12 @@ const fs = require('fs');
 const { GoogleGenAI } = require('@google/genai');
 const axios = require('axios');
 require('dotenv').config();
-
+const StaticRoute=require('./routes/user')
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const {connectDB}=require("./connect")
+const cookieParser = require('cookie-parser');
+const { getUser } = require('./service/auth');
 // Initialize Gemini AI
 const ai = new GoogleGenAI({});
 
@@ -23,6 +25,11 @@ const imagesDir = path.join(__dirname, 'public', 'generated');
   }
 });
 
+connectDB().then(()=>{
+  console.log("🚀 Connected to MongoDB")
+}).catch((err)=>{
+  console.error("❌ Failed to connect to MongoDB:", err)
+});
 // Set up EJS
 app.set('view engine', 'ejs');
 app.set('views', viewsDir);
@@ -31,12 +38,37 @@ app.set('views', viewsDir);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/user',StaticRoute)
+
+// parse cookies so we can read the uid token (if present)
+app.use(cookieParser());
+
+// populate req.user and res.locals.user for all views if a valid uid cookie exists
+app.use((req, res, next) => {
+  try {
+    const token = req.cookies?.uid;
+    if (token) {
+      const user = getUser(token);
+      if (user) {
+        req.user = user;
+        res.locals.user = user;
+      }
+    }
+  } catch (err) {
+    // ignore - leave req.user undefined if token invalid
+  }
+  next();
+});
 
 // Store generated comics in memory (replace with database later)
 const generatedComics = new Map();
 
 // Routes
 app.get('/', (req, res) => {
+  res.render('home', {user:req.user});
+});
+
+app.get('/create', (req, res) => {
   res.render('index', { title: 'AI Comic Generator' });
 });
 

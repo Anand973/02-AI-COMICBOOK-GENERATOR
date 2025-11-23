@@ -3,57 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Comic Gallery - AI Comic Generator</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .gallery-header h2 {
+            font-family: 'Comic Neue', cursive;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .gallery-header p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.2rem;
+        }
+
+        /* Gallery Grid */
+      
+
+        .comic-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .comic-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .comic-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .comic-placeholder {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 3rem;
+        }
+
+        .comic-info {
+            padding: 25px;
+        }
+
+        .comic-info h3 {
+            font-size: 1.4rem;
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .comic-info p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .comic-meta {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.3rem;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #feca57;
+        }
+        
+       .gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+  gap: 20px;
+  padding: 20px;
+  justify-items: center; /* centers items horizontally */
+  align-items: start; /* keeps top alignment */
+}
+        /* Responsive */
+        @media (max-width: 768px) {
+            .gallery-header h2 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- views/gallery.ejs - Comics Gallery -->
-<div class="card">
-    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">
-        <i class="fas fa-images"></i> Comic Gallery
-    </h2>
-
-    <% if (comics && comics.length > 0) { %>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-        <% comics.forEach(comic => { %>
-        <div style="border: 2px solid #ddd; border-radius: 15px; overflow: hidden; background: white; transition: transform 0.3s ease;">
-            <% if (comic.images && comic.images.panels && comic.images.panels[0] && comic.images.panels[0].imagePath) { %>
-            <img 
-                src="<%= comic.images.panels[0].imagePath %>" 
-                alt="<%= comic.story.title %>"
-                style="width: 100%; height: 200px; object-fit: cover;"
-            >
-            <% } else { %>
-            <div style="height: 200px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
-                <i class="fas fa-image"></i>
-            </div>
-            <% } %>
-            
-            <div style="padding: 20px;">
-                <h3 style="margin-bottom: 10px; color: #333;"><%= comic.story.title %></h3>
-                <% if (comic.story.summary) { %>
-                    <p style="color: #666; margin-bottom: 10px;"><%= comic.story.summary %></p>
-                <% } %>
-                <p style="font-size: 0.9em; color: #888; margin-bottom: 18px;">
-                    <strong>Genre:</strong> <%= comic.story.genre || comic.genre || 'N/A' %><br>
-                    <strong>Panels:</strong> <%= comic.story.scenes ? comic.story.scenes.length : (comic.images && comic.images.panels ? comic.images.panels.length : '-') %><br>
-                    <strong>Created:</strong>
-                    <%= comic.createdAt ? (new Date(comic.createdAt)).toLocaleString() : '-' %>
-                </p>
-                <a href="/comic/<%= comic.id %>" class="btn btn-secondary" style="width: 100%; text-align: center;">
-                    <i class="fas fa-eye"></i> View Comic
-                </a>
-            </div>
+    <div class="container">
+        <div class="gallery-header">
+            <h2><i class="fas fa-images"></i> Comic Gallery</h2>
+            <p>Explore your AI-generated comics — stories brought to life with creativity and technology!</p>
         </div>
-        <% }); %>
+
+        <% if (comics && comics.length > 0) { %>
+        <div class="gallery-grid">
+            <% comics.forEach(comic => { %>
+            <div class="comic-card">
+                <% if (comic.images && comic.images.panels && comic.images.panels[0] && comic.images.panels[0].imagePath) { %>
+                    <img src="<%= comic.images.panels[0].imagePath %>" alt="<%= comic.story.title %>" class="comic-image">
+                <% } else { %>
+                    <div class="comic-placeholder"><i class="fas fa-image"></i></div>
+                <% } %>
+
+                <div class="comic-info">
+                    <h3><%= comic.story.title %></h3>
+
+                    <% if (comic.story.summary) { %>
+                        <p><%= comic.story.summary %></p>
+                    <% } %>
+
+                    <div class="comic-meta">
+                        <strong>Genre:</strong> <%= comic.story.genre || comic.genre || 'N/A' %><br>
+                        <strong>Panels:</strong> <%= comic.story.scenes ? comic.story.scenes.length : (comic.images && comic.images.panels ? comic.images.panels.length : '-') %><br>
+                        <strong>Created:</strong> <%= comic.createdAt ? (new Date(comic.createdAt)).toLocaleString() : '-' %>
+                    </div>
+
+                    <a href="/comic/<%= comic.id %>" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-eye"></i> View Comic
+                    </a>
+                </div>
+            </div>
+            <% }); %>
+        </div>
+
+        <% } else { %>
+        <div class="empty-state">
+            <i class="fas fa-info-circle"></i>
+            <p>No comics have been generated yet.</p>
+            <a href="/create" class="btn btn-secondary" style="margin-top: 25px;">
+                <i class="fas fa-plus"></i> Create the first one!
+            </a>
+        </div>
+        <% } %>
     </div>
-    <% } else { %>
-    <div style="text-align: center; color: #666; font-size: 1.2em; padding: 40px 0;">
-        <i class="fas fa-info-circle"></i> No comics have been generated yet.<br>
-        <a href="/" class="btn" style="margin-top: 20px;">
-            <i class="fas fa-plus"></i> Create the first one!
-        </a>
-    </div>
-    <% } %>
-</div>
 </body>
 </html>

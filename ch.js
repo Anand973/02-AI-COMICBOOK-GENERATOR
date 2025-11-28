@@ -1,16 +1,18 @@
-// app.js - Main Express server with EJS
+// app.js - Main Express server with MongoDB
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { GoogleGenAI } = require('@google/genai');
 const axios = require('axios');
 require('dotenv').config();
-const StaticRoute=require('./routes/user')
+const StaticRoute = require('./routes/user');
+const Comic = require('./models/comic'); // Import Comic model
 const app = express();
 const PORT = process.env.PORT || 3000;
-const {connectDB}=require("./connect")
+const { connectDB } = require("./connect");
 const cookieParser = require('cookie-parser');
 const { getUser } = require('./service/auth');
+
 // Initialize Gemini AI
 const ai = new GoogleGenAI({});
 
@@ -25,11 +27,12 @@ const imagesDir = path.join(__dirname, 'public', 'generated');
   }
 });
 
-connectDB().then(()=>{
+connectDB().then(() => {
   console.log("🚀 Connected to MongoDB")
-}).catch((err)=>{
+}).catch((err) => {
   console.error("❌ Failed to connect to MongoDB:", err)
 });
+
 // Set up EJS
 app.set('view engine', 'ejs');
 app.set('views', viewsDir);
@@ -38,7 +41,7 @@ app.set('views', viewsDir);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/user',StaticRoute)
+app.use('/user', StaticRoute);
 
 // parse cookies so we can read the uid token (if present)
 app.use(cookieParser());
@@ -60,56 +63,85 @@ app.use((req, res, next) => {
   next();
 });
 
-// Store generated comics in memory (replace with database later)
-const generatedComics = new Map();
-
 // Routes
 app.get('/', (req, res) => {
-  res.render('home', {user:req.user});
+  res.render('home', { user: req.user });
 });
 
 app.get('/create', (req, res) => {
   res.render('index', { title: 'AI Comic Generator' });
 });
 
-app.get('/gallery', (req, res) => {
-  const comics = Array.from(generatedComics.values()).reverse();
-  res.render('gallery', { title: 'Comic Gallery', comics });
-});
-
-app.get('/comic/:id', (req, res) => {
-  const comic = generatedComics.get(req.params.id);
-  if (!comic) {
-    return res.status(404).render('error', { 
-      title: 'Comic Not Found', 
-      message: 'The comic you are looking for does not exist.' 
+app.get('/gallery', async (req, res) => {
+  try {
+    // Fetch all completed comics from MongoDB, sorted by newest first
+    const comics = await Comic.find({ status: 'completed' })
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    res.render('gallery', { title: 'Comic Gallery', comics });
+  } catch (error) {
+    console.error('Error fetching comics:', error);
+    res.render('gallery', { 
+      title: 'Comic Gallery', 
+      comics: [],
+      error: 'Failed to load comics'
     });
   }
-  res.render('comic', { title: comic.story.title, comic });
+});
+
+app.get('/comic/:id', async (req, res) => {
+  try {
+    const comic = await Comic.findOne({ comicId: req.params.id }).lean();
+    
+    if (!comic) {
+      return res.status(404).render('error', {
+        title: 'Comic Not Found',
+        message: 'The comic you are looking for does not exist.'
+      });
+    }
+    
+    res.render('comic', { title: comic.story?.title || 'Comic', comic });
+  } catch (error) {
+    console.error('Error fetching comic:', error);
+    res.status(500).render('error', {
+      title: 'Error',
+      message: 'An error occurred while loading the comic.'
+    });
+  }
 });
 
 // Main comic generation endpoint
 app.post('/generate', async (req, res) => {
   const { topic, genre, panels, style } = req.body;
-  
+
   if (!topic) {
-    return res.render('index', { 
-      title: 'AI Comic Generator', 
-      error: 'Please enter a topic for your comic' 
+    return res.render('index', {
+      title: 'AI Comic Generator',
+      error: 'Please enter a topic for your comic'
     });
   }
 
   const comicId = Date.now().toString();
-  
+
   try {
+    // Create initial comic record in MongoDB
+    await Comic.create({
+      comicId: comicId,
+      status: 'generating_story',
+      progress: 0,
+      currentStep: 'Starting...',
+      createdBy: req.user?._id || null
+    });
+
     // Show loading page
-    res.render('loading', { 
-      title: 'Generating Comic...', 
-      topic, 
-      genre, 
-      panels, 
+    res.render('loading', {
+      title: 'Generating Comic...',
+      topic,
+      genre,
+      panels,
       style,
-      comicId 
+      comicId
     });
 
     // Generate in background
@@ -117,102 +149,117 @@ app.post('/generate', async (req, res) => {
 
   } catch (error) {
     console.error('Error starting comic generation:', error);
-    res.render('index', { 
-      title: 'AI Comic Generator', 
-      error: 'Failed to start comic generation. Please try again.' 
+    res.render('index', {
+      title: 'AI Comic Generator',
+      error: 'Failed to start comic generation. Please try again.'
     });
   }
 });
 
 // Check generation status
-app.get('/status/:id', (req, res) => {
-  const comic = generatedComics.get(req.params.id);
-  
-  if (!comic) {
-    return res.json({ status: 'not_found' });
-  }
+app.get('/status/:id', async (req, res) => {
+  try {
+    const comic = await Comic.findOne({ comicId: req.params.id }).lean();
 
-  if (comic.status === 'completed') {
-    return res.json({ 
-      status: 'completed', 
-      redirect: `/comic/${req.params.id}` 
+    if (!comic) {
+      return res.json({ status: 'not_found' });
+    }
+
+    if (comic.status === 'completed') {
+      return res.json({
+        status: 'completed',
+        redirect: `/comic/${req.params.id}`
+      });
+    }
+
+    res.json({
+      status: comic.status,
+      progress: comic.progress || 0,
+      currentStep: comic.currentStep || 'Starting...'
     });
+  } catch (error) {
+    console.error('Error checking status:', error);
+    res.json({ status: 'error', error: 'Failed to check status' });
   }
-
-  res.json({ 
-    status: comic.status, 
-    progress: comic.progress || 0,
-    currentStep: comic.currentStep || 'Starting...'
-  });
 });
 
 // Background comic generation function
 async function generateComicInBackground(comicId, topic, genre, panels, style) {
   try {
-    // Initialize comic record
-    generatedComics.set(comicId, {
-      id: comicId,
-      status: 'generating_story',
-      progress: 10,
-      currentStep: 'Generating story...',
-      createdAt: new Date()
-    });
+    // Update: Generating story
+    await Comic.findOneAndUpdate(
+      { comicId },
+      {
+        status: 'generating_story',
+        progress: 10,
+        currentStep: 'Generating story...'
+      }
+    );
 
     // Step 1: Generate story
     console.log(`🚀 Generating comic story for ID: ${comicId}`);
     const story = await generateComicStory(topic, genre, panels, style);
-    
+
     if (!story) {
-      generatedComics.set(comicId, {
-        ...generatedComics.get(comicId),
-        status: 'error',
-        error: 'Failed to generate story'
-      });
+      await Comic.findOneAndUpdate(
+        { comicId },
+        {
+          status: 'error',
+          error: 'Failed to generate story'
+        }
+      );
       return;
     }
 
     // Update progress
-    generatedComics.set(comicId, {
-      ...generatedComics.get(comicId),
-      status: 'generating_images',
-      progress: 30,
-      currentStep: 'Generating images...',
-      story
-    });
+    await Comic.findOneAndUpdate(
+      { comicId },
+      {
+        status: 'generating_images',
+        progress: 30,
+        currentStep: 'Generating images...',
+        story: story
+      }
+    );
 
     // Step 2: Generate images
     console.log(`🎨 Generating images for comic ID: ${comicId}`);
     const images = await generateComicImages(story.scenes, style, genre, comicId);
 
     if (!images) {
-      generatedComics.set(comicId, {
-        ...generatedComics.get(comicId),
-        status: 'error',
-        error: 'Failed to generate images'
-      });
+      await Comic.findOneAndUpdate(
+        { comicId },
+        {
+          status: 'error',
+          error: 'Failed to generate images'
+        }
+      );
       return;
     }
 
     // Complete
-    generatedComics.set(comicId, {
-      ...generatedComics.get(comicId),
-      status: 'completed',
-      progress: 100,
-      currentStep: 'Complete!',
-      story,
-      images,
-      completedAt: new Date()
-    });
+    await Comic.findOneAndUpdate(
+      { comicId },
+      {
+        status: 'completed',
+        progress: 100,
+        currentStep: 'Complete!',
+        images: images,
+        completedAt: new Date()
+      }
+    );
 
     console.log(`✅ Comic generation completed for ID: ${comicId}`);
 
   } catch (error) {
     console.error(`❌ Error generating comic ${comicId}:`, error);
-    generatedComics.set(comicId, {
-      ...generatedComics.get(comicId),
-      status: 'error',
-      error: error.message
-    });
+    await Comic.findOneAndUpdate(
+      { comicId },
+      {
+        status: 'error',
+        error: error.message
+      }
+    );
   }
 }
 
@@ -266,11 +313,11 @@ Make sure the story has:
 
     const storyText = result.text;
     const jsonMatch = storyText.match(/\{[\s\S]*\}/);
-    
+
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
-    
+
     throw new Error('No valid JSON found in response');
 
   } catch (error) {
@@ -288,19 +335,18 @@ async function generateComicImages(scenes, style, genre, comicId) {
     }
 
     const generatedPanels = [];
-    
+
     for (let i = 0; i < scenes.length; i++) {
       const scene = scenes[i];
-      
-      // Update progress
-      const currentComic = generatedComics.get(comicId);
-      if (currentComic) {
-        generatedComics.set(comicId, {
-          ...currentComic,
+
+      // Update progress in MongoDB
+      await Comic.findOneAndUpdate(
+        { comicId },
+        {
           progress: 30 + (i / scenes.length) * 60,
           currentStep: `Generating Panel ${scene.panelNumber}...`
-        });
-      }
+        }
+      );
 
       try {
         // Generate prompt
@@ -348,7 +394,7 @@ Generate a single paragraph prompt with art style, character details, background
         const imageData = imageResponse.data.artifacts[0].base64;
         const fileName = `panel_${scene.panelNumber.toString().padStart(2, '0')}.png`;
         const filePath = path.join(comicFolder, fileName);
-        
+
         const imageBuffer = Buffer.from(imageData, 'base64');
         fs.writeFileSync(filePath, imageBuffer);
 
@@ -392,6 +438,7 @@ app.listen(PORT, () => {
   console.log(`📝 Make sure your .env file contains:`);
   console.log(`   GEMINI_API_KEY=your_key`);
   console.log(`   STABILITY_API_KEY=your_key`);
+  console.log(`   MONGODB_URI=your_mongodb_connection_string`);
 });
 
 module.exports = app;

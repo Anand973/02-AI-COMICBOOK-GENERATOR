@@ -48,7 +48,14 @@
         }
 
         /* Gallery Grid */
-      
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px;
+            padding: 20px;
+            justify-items: center;
+            align-items: start;
+        }
 
         .comic-card {
             background: rgba(255, 255, 255, 0.1);
@@ -57,6 +64,8 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            max-width: 350px;
         }
 
         .comic-card:hover {
@@ -98,12 +107,20 @@
             font-size: 0.95rem;
             margin-bottom: 15px;
             line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .comic-meta {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.85rem;
             margin-bottom: 18px;
+        }
+
+        .comic-meta strong {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         /* Buttons */
@@ -155,19 +172,27 @@
             margin-bottom: 15px;
             color: #feca57;
         }
-        
-       .gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-  gap: 20px;
-  padding: 20px;
-  justify-items: center; /* centers items horizontally */
-  align-items: start; /* keeps top alignment */
-}
+
+        /* Error State */
+        .error-message {
+            background: rgba(255, 107, 107, 0.2);
+            border: 2px solid rgba(255, 107, 107, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .gallery-header h2 {
                 font-size: 2.5rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                padding: 10px;
             }
         }
     </style>
@@ -179,30 +204,49 @@
             <p>Explore your AI-generated comics — stories brought to life with creativity and technology!</p>
         </div>
 
+        <% if (locals.error) { %>
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p><%= error %></p>
+        </div>
+        <% } %>
+
         <% if (comics && comics.length > 0) { %>
         <div class="gallery-grid">
             <% comics.forEach(comic => { %>
             <div class="comic-card">
-                <% if (comic.images && comic.images.panels && comic.images.panels[0] && comic.images.panels[0].imagePath) { %>
-                    <img src="<%= comic.images.panels[0].imagePath %>" alt="<%= comic.story.title %>" class="comic-image">
+                <% if (comic.images && comic.images.panels && comic.images.panels.length > 0 && comic.images.panels[0].imagePath) { %>
+                    <img src="<%= comic.images.panels[0].imagePath %>" alt="<%= comic.story?.title || 'Comic' %>" class="comic-image">
                 <% } else { %>
                     <div class="comic-placeholder"><i class="fas fa-image"></i></div>
                 <% } %>
 
                 <div class="comic-info">
-                    <h3><%= comic.story.title %></h3>
+                    <h3><%= comic.story?.title || 'Untitled Comic' %></h3>
 
-                    <% if (comic.story.summary) { %>
+                    <% if (comic.story?.summary) { %>
                         <p><%= comic.story.summary %></p>
                     <% } %>
 
                     <div class="comic-meta">
-                        <strong>Genre:</strong> <%= comic.story.genre || comic.genre || 'N/A' %><br>
-                        <strong>Panels:</strong> <%= comic.story.scenes ? comic.story.scenes.length : (comic.images && comic.images.panels ? comic.images.panels.length : '-') %><br>
-                        <strong>Created:</strong> <%= comic.createdAt ? (new Date(comic.createdAt)).toLocaleString() : '-' %>
+                        <% if (comic.story?.scenes && comic.story.scenes.length > 0) { %>
+                            <strong>Panels:</strong> <%= comic.story.scenes.length %><br>
+                        <% } else if (comic.images?.panels && comic.images.panels.length > 0) { %>
+                            <strong>Panels:</strong> <%= comic.images.panels.length %><br>
+                        <% } %>
+                        
+                        <% if (comic.createdAt) { %>
+                            <strong>Created:</strong> <%= new Date(comic.createdAt).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) %>
+                        <% } %>
                     </div>
 
-                    <a href="/comic/<%= comic.id %>" class="btn btn-primary" style="width: 100%;">
+                    <a href="/comic/<%= comic.comicId %>" class="btn btn-primary" style="width: 100%;">
                         <i class="fas fa-eye"></i> View Comic
                     </a>
                 </div>

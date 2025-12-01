@@ -94,6 +94,17 @@
 <body>
   <div class="form-container">
     <h1>Login</h1>
+
+     <!-- Show error message if exists -->
+  <% if (error) { %>
+    <p style="color:red;">
+      <%= error %> 
+      <% if (error === "User not found") { %>
+        Please <a href="/user/signup">signup</a> first.
+      <% } %>
+    </p>
+  <% } %>
+  
     <form action="/user/login" method="POST">
       <label>Email:</label>
       <input type="email" name="email" placeholder="Enter your email" required>
@@ -103,6 +114,7 @@
       
       <button type="submit">Submit</button>
     </form>
+    
     <div class="form-footer">
       Don’t have an account? <a href="/user/signup">Sign Up</a>
     </div>

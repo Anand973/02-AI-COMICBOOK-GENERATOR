@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 const { connectDB } = require("./connect");
 const cookieParser = require('cookie-parser');
 const { getUser } = require('./service/auth');
-
+app.use(express.urlencoded({ extended: true }));
 // Initialize Gemini AI
 const ai = new GoogleGenAI({});
 

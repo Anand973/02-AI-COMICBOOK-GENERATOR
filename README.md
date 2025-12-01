@@ -19,30 +19,45 @@ Users can signup, login, create comics, and view a gallery. All data is stored i
 
 ### 1. Clone the Repository
 
-
-git clone https://github.com/your-username/your-repo.git
+```bash
+git clone
+```
+```bash
 cd your-repo
+```
 
-2. Install Dependencies
+---
+### 2. Install Dependencies
+```bash
 npm install
+```
+
 Dependencies include: Express, Mongoose, EJS, Axios, Cookie-parser, dotenv, bcrypt, @google/genai.
 
-3. Create .env File
+---
+
+### 3. Create .env File
 
 In the project root, create a .env file:
 
  .env
-
+ ---
  Add the following structure:
-
+```bash
 PORT=3000
-JWT_SECRET=your_jwt_secret
+
+NODE_ENV=development
+
 GEMINI_API_KEY=your_gemini_api_key
+
 STABILITY_API_KEY=your_stability_api_key
+
 MONGODB_URI=your_mongodb_connection_string
 
+```
+---
 
-4. Generate API Keys
+### 4. Generate API Keys
 
 Google Gemini AI: Go to Google Cloud Console
 , create a project, enable Gemini AI, generate API key.
@@ -54,21 +69,24 @@ MongoDB Atlas: Go to MongoDB Atlas
 , create a free cluster, create a DB user, copy connection string.
 
 Add the keys and URL to your .env file.
+---
+---
 
-
-
-5. Run the Project
-npm start
-
+### 5. Run the Project
+```bash
+node ch.js
+```
 
 or with nodemon:
-
+```bash
 nodemon ch.js
-
+```
 
 Open in browser: http://localhost:3000
 
-6. Usage
+---
+
+### 6. Usage
 
 Go to /user/signup → Create a new account.
 
@@ -78,7 +96,9 @@ Go to /create → Generate AI comic.
 
 Go to /gallery → View all comics.
 
-Notes
+---
+
+### Notes:
 
 Do not commit .env to GitHub.
 
@@ -86,7 +106,9 @@ Keep API keys and DB credentials private.
 
 MongoDB Atlas must allow your IP to connect.
 
-Tech Stack
+---
+
+### Tech Stack
 
 Node.js, Express
 
@@ -100,4 +122,5 @@ Stability AI
 
 Tailwind CSS (optional for styling)
 
-```bash
+
+

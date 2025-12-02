@@ -308,6 +308,157 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(45deg, #feca57, #ff6b6b);
         }
+
+        /* // Footer how it works */
+        .how-it-works {
+  padding: 80px 16px;
+  text-align: center;
+  color: white;
+}
+
+.how-it-works h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.how-it-works .subtitle {
+  opacity: 0.8;
+  margin: 0 auto 48px;
+  max-width: 700px;
+}
+
+.work-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .work-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.work-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s;
+}
+
+.work-card:hover {
+  transform: scale(1.05);
+}
+
+.emoji {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.work-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.work-card p {
+  opacity: 0.7;
+  margin-top: 12px;
+}
+  /* // Footer - Testimonials */
+  .testimonials {
+  padding: 80px 20px;
+  text-align: center;
+  color: white;
+  background: #0c0f1a;
+}
+
+.testimonials h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.testimonials .subtitle {
+  opacity: 0.7;
+  max-width: 600px;
+  margin: 0 auto 50px;
+  font-size: 1rem;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .testimonial-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.testimonial-card {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px);
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+.stars {
+  color: gold;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+}
+
+.quote {
+  opacity: 0.9;
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.user img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.user span {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
     </style>
 </head>
 <body>
@@ -418,8 +569,86 @@
                 </div>
             </div>
         </section>
-    </main>
+        
+        <!-- Footer -- HOW it works -->
+            <section class="how-it-works">
+               <h2>How It Works</h2>
+  <p class="subtitle">
+    Create amazing comics in just a few simple steps — no drawing or experience needed!
+  </p>
 
+  <div class="work-grid">
+
+    <div class="work-card">
+      <p class="emoji">📝</p>
+      <h3>1. Describe Your Story</h3>
+      <p>Tell AI about characters, world, style and tone.</p>
+    </div>
+
+    <div class="work-card">
+      <p class="emoji">🤖</p>
+      <h3>2. Generate Panels</h3>
+      <p>AI generates comic panels and text automatically.</p>
+    </div>
+
+    <div class="work-card">
+      <p class="emoji">📤</p>
+      <h3>3. Download</h3>
+      <p>Export your comic</p>
+    </div>
+
+  </div>
+             </section>
+
+          <!-- Footer -- Testimonials -->
+           <section class="testimonials">
+  <h2>What Our Users Say</h2>
+  <p class="subtitle">Real feedback from real creators using our platform.</p>
+
+  <div class="testimonial-grid">
+
+    <div class="testimonial-card">
+      <p class="stars">★★★★★</p>
+      <p class="quote">"This platform made creating comics so easy. I made my first story in 10 minutes!"</p>
+      <div class="user">
+        <img src="https://i.pravatar.cc/60?img=3" alt="">
+        <div>
+          <h3>Alex Carter</h3>
+          <span>Story Writer</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <p class="stars">★★★★★</p>
+      <p class="quote">"I love how consistent the characters look in every panel. Truly game-changing."</p>
+      <div class="user">
+        <img src="https://i.pravatar.cc/60?img=4" alt="">
+        <div>
+          <h3>Maria Johnson</h3>
+          <span>Digital Artist</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <p class="stars">★★★★★</p>
+      <p class="quote">"Super fast, beautiful results, and easy to use — everything I wanted!"</p>
+      <div class="user">
+        <img src="https://i.pravatar.cc/60?img=5" alt="">
+        <div>
+          <h3>Rahul Verma</h3>
+          <span>Comic Creator</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+    </main>
+  
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
     <!-- JavaScript for Interactive Elements -->
     <script>
         // Add some interactive hover effects

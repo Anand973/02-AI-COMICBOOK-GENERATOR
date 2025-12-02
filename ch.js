@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 const { connectDB } = require("./connect");
 const cookieParser = require('cookie-parser');
 const { getUser } = require('./service/auth');
-
+app.use(express.urlencoded({ extended: true }));
 // Initialize Gemini AI
 const ai = new GoogleGenAI({});
 
@@ -418,7 +418,7 @@ Generate a single paragraph prompt with art style, character details, background
       }
 
       // Small delay to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     return {

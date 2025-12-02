@@ -418,7 +418,7 @@ Generate a single paragraph prompt with art style, character details, background
       }
 
       // Small delay to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     return {
